@@ -1,450 +1,489 @@
-import { useState } from 'react';
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hub de Jeux</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <div id="app" class="flex items-center justify-center min-h-screen p-4"></div>
 
-// Jeu de Morpion
-function TicTacToe() {
-  const [board, setBoard] = useState(Array(9).fill(null));
-  const [isXNext, setIsXNext] = useState(true);
-  const [score, setScore] = useState({ X: 0, O: 0, draws: 0 });
+    <script>
+        let currentGame = null;
+        let gameState = {};
 
-  const calculateWinner = (squares) => {
-    const lines = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8],
-      [0, 3, 6], [1, 4, 7], [2, 5, 8],
-      [0, 4, 8], [2, 4, 6]
-    ];
-    
-    for (let line of lines) {
-      const [a, b, c] = line;
-      if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-        return { winner: squares[a], line };
-      }
-    }
-    return null;
-  };
-
-  const handleClick = (i) => {
-    if (board[i] || calculateWinner(board)) return;
-    
-    const newBoard = [...board];
-    newBoard[i] = isXNext ? 'X' : 'O';
-    setBoard(newBoard);
-    setIsXNext(!isXNext);
-
-    const result = calculateWinner(newBoard);
-    if (result) {
-      setTimeout(() => {
-        setScore(prev => ({ ...prev, [result.winner]: prev[result.winner] + 1 }));
-      }, 500);
-    } else if (newBoard.every(cell => cell !== null)) {
-      setTimeout(() => {
-        setScore(prev => ({ ...prev, draws: prev.draws + 1 }));
-      }, 500);
-    }
-  };
-
-  const resetGame = () => {
-    setBoard(Array(9).fill(null));
-    setIsXNext(true);
-  };
-
-  const result = calculateWinner(board);
-  const winner = result?.winner;
-  const winningLine = result?.line || [];
-  const isDraw = !winner && board.every(cell => cell !== null);
-
-  const status = winner 
-    ? `🎉 Joueur ${winner} gagne !`
-    : isDraw 
-    ? '🤝 Match nul !'
-    : `🎮 Au tour de : ${isXNext ? 'X' : 'O'}`;
-
-  return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="flex justify-center gap-4 mb-6">
-        <div className="bg-blue-500/30 backdrop-blur px-4 py-2 rounded-xl border border-blue-300/30">
-          <div className="text-blue-200 text-xs font-semibold">X</div>
-          <div className="text-2xl font-bold text-white">{score.X}</div>
-        </div>
-        <div className="bg-gray-500/30 backdrop-blur px-4 py-2 rounded-xl border border-gray-300/30">
-          <div className="text-gray-200 text-xs font-semibold">Nuls</div>
-          <div className="text-2xl font-bold text-white">{score.draws}</div>
-        </div>
-        <div className="bg-pink-500/30 backdrop-blur px-4 py-2 rounded-xl border border-pink-300/30">
-          <div className="text-pink-200 text-xs font-semibold">O</div>
-          <div className="text-2xl font-bold text-white">{score.O}</div>
-        </div>
-      </div>
-
-      <div className="text-center mb-4">
-        <div className="text-xl font-bold text-white bg-white/10 backdrop-blur py-2 px-4 rounded-xl inline-block">
-          {status}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 mb-4 max-w-md mx-auto">
-        {board.map((cell, i) => {
-          const isWinningCell = winningLine.includes(i);
-          return (
-            <button
-              key={i}
-              onClick={() => handleClick(i)}
-              className={`w-24 h-24 text-5xl font-bold rounded-xl transition-all
-                ${cell === 'X' ? 'text-blue-400' : 'text-pink-400'}
-                ${isWinningCell 
-                  ? 'bg-green-500/40 border-2 border-green-300 scale-105' 
-                  : 'bg-white/10 border-2 border-white/30 hover:bg-white/20 hover:scale-105'
+        // Morpion
+        const TicTacToe = {
+            init() {
+                gameState.board = Array(9).fill(null);
+                gameState.isXNext = true;
+                gameState.score = { X: 0, O: 0, draws: 0 };
+            },
+            
+            calculateWinner(squares) {
+                const lines = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                
+                for (let line of lines) {
+                    const [a, b, c] = line;
+                    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+                        return { winner: squares[a], line };
+                    }
                 }
-                ${!cell && !winner ? 'cursor-pointer' : 'cursor-default'}
-                backdrop-blur shadow-lg`}
-              disabled={!!cell || !!winner}
-            >
-              {cell}
-            </button>
-          );
-        })}
-      </div>
+                return null;
+            },
+            
+            handleClick(i) {
+                if (gameState.board[i] || this.calculateWinner(gameState.board)) return;
+                
+                gameState.board[i] = gameState.isXNext ? 'X' : 'O';
+                gameState.isXNext = !gameState.isXNext;
+                
+                const result = this.calculateWinner(gameState.board);
+                if (result) {
+                    setTimeout(() => {
+                        gameState.score[result.winner]++;
+                        render();
+                    }, 500);
+                } else if (gameState.board.every(cell => cell !== null)) {
+                    setTimeout(() => {
+                        gameState.score.draws++;
+                        render();
+                    }, 500);
+                }
+                
+                render();
+            },
+            
+            reset() {
+                gameState.board = Array(9).fill(null);
+                gameState.isXNext = true;
+                render();
+            },
+            
+            render() {
+                const result = this.calculateWinner(gameState.board);
+                const winner = result?.winner;
+                const winningLine = result?.line || [];
+                const isDraw = !winner && gameState.board.every(cell => cell !== null);
+                
+                const status = winner 
+                    ? `🎉 Joueur ${winner} gagne !`
+                    : isDraw 
+                    ? '🤝 Match nul !'
+                    : `🎮 Au tour de : ${gameState.isXNext ? 'X' : 'O'}`;
+                
+                return `
+                    <div class="w-full max-w-2xl mx-auto">
+                        <div class="flex justify-center gap-4 mb-6">
+                            <div class="bg-blue-500/30 backdrop-blur px-4 py-2 rounded-xl border border-blue-300/30">
+                                <div class="text-blue-200 text-xs font-semibold">X</div>
+                                <div class="text-2xl font-bold text-white">${gameState.score.X}</div>
+                            </div>
+                            <div class="bg-gray-500/30 backdrop-blur px-4 py-2 rounded-xl border border-gray-300/30">
+                                <div class="text-gray-200 text-xs font-semibold">Nuls</div>
+                                <div class="text-2xl font-bold text-white">${gameState.score.draws}</div>
+                            </div>
+                            <div class="bg-pink-500/30 backdrop-blur px-4 py-2 rounded-xl border border-pink-300/30">
+                                <div class="text-pink-200 text-xs font-semibold">O</div>
+                                <div class="text-2xl font-bold text-white">${gameState.score.O}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <div class="text-xl font-bold text-white bg-white/10 backdrop-blur py-2 px-4 rounded-xl inline-block">
+                                ${status}
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-2 mb-4 max-w-md mx-auto">
+                            ${gameState.board.map((cell, i) => {
+                                const isWinningCell = winningLine.includes(i);
+                                return `
+                                    <button
+                                        onclick="TicTacToe.handleClick(${i})"
+                                        class="w-24 h-24 text-5xl font-bold rounded-xl transition-all
+                                            ${cell === 'X' ? 'text-blue-400' : 'text-pink-400'}
+                                            ${isWinningCell 
+                                                ? 'bg-green-500/40 border-2 border-green-300 scale-105' 
+                                                : 'bg-white/10 border-2 border-white/30 hover:bg-white/20 hover:scale-105'
+                                            }
+                                            backdrop-blur shadow-lg"
+                                        ${cell || winner ? 'disabled' : ''}
+                                    >
+                                        ${cell || ''}
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <div class="flex gap-3 justify-center">
+                            <button onclick="TicTacToe.reset()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition-all hover:scale-105">
+                                Nouvelle partie
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        };
 
-      <div className="flex gap-3 justify-center">
-        <button onClick={resetGame} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition-all hover:scale-105">
-          Nouvelle partie
-        </button>
-      </div>
-    </div>
-  );
-}
+        // Puissance 4
+        const ConnectFour = {
+            init() {
+                gameState.board = Array(42).fill(null);
+                gameState.isRedNext = true;
+                gameState.score = { red: 0, yellow: 0 };
+            },
+            
+            checkWinner(squares) {
+                const rows = 6, cols = 7;
+                
+                // Horizontal
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols - 3; c++) {
+                        const idx = r * cols + c;
+                        if (squares[idx] && squares[idx] === squares[idx + 1] && 
+                            squares[idx] === squares[idx + 2] && squares[idx] === squares[idx + 3]) {
+                            return { winner: squares[idx], cells: [idx, idx + 1, idx + 2, idx + 3] };
+                        }
+                    }
+                }
+                
+                // Vertical
+                for (let c = 0; c < cols; c++) {
+                    for (let r = 0; r < rows - 3; r++) {
+                        const idx = r * cols + c;
+                        if (squares[idx] && squares[idx] === squares[idx + cols] && 
+                            squares[idx] === squares[idx + cols * 2] && squares[idx] === squares[idx + cols * 3]) {
+                            return { winner: squares[idx], cells: [idx, idx + cols, idx + cols * 2, idx + cols * 3] };
+                        }
+                    }
+                }
+                
+                // Diagonales
+                for (let r = 0; r < rows - 3; r++) {
+                    for (let c = 0; c < cols - 3; c++) {
+                        const idx = r * cols + c;
+                        if (squares[idx] && squares[idx] === squares[idx + cols + 1] && 
+                            squares[idx] === squares[idx + (cols + 1) * 2] && squares[idx] === squares[idx + (cols + 1) * 3]) {
+                            return { winner: squares[idx], cells: [idx, idx + cols + 1, idx + (cols + 1) * 2, idx + (cols + 1) * 3] };
+                        }
+                    }
+                }
+                
+                for (let r = 0; r < rows - 3; r++) {
+                    for (let c = 3; c < cols; c++) {
+                        const idx = r * cols + c;
+                        if (squares[idx] && squares[idx] === squares[idx + cols - 1] && 
+                            squares[idx] === squares[idx + (cols - 1) * 2] && squares[idx] === squares[idx + (cols - 1) * 3]) {
+                            return { winner: squares[idx], cells: [idx, idx + cols - 1, idx + (cols - 1) * 2, idx + (cols - 1) * 3] };
+                        }
+                    }
+                }
+                
+                return null;
+            },
+            
+            dropPiece(col) {
+                const result = this.checkWinner(gameState.board);
+                if (result) return;
+                
+                for (let row = 5; row >= 0; row--) {
+                    const idx = row * 7 + col;
+                    if (!gameState.board[idx]) {
+                        gameState.board[idx] = gameState.isRedNext ? 'red' : 'yellow';
+                        gameState.isRedNext = !gameState.isRedNext;
+                        
+                        const winner = this.checkWinner(gameState.board);
+                        if (winner) {
+                            setTimeout(() => {
+                                gameState.score[winner.winner]++;
+                                render();
+                            }, 500);
+                        }
+                        
+                        render();
+                        return;
+                    }
+                }
+            },
+            
+            reset() {
+                gameState.board = Array(42).fill(null);
+                gameState.isRedNext = true;
+                render();
+            },
+            
+            render() {
+                const result = this.checkWinner(gameState.board);
+                const winningCells = result?.cells || [];
+                
+                return `
+                    <div class="w-full max-w-2xl mx-auto">
+                        <div class="flex justify-center gap-6 mb-6">
+                            <div class="bg-red-500/30 backdrop-blur px-6 py-2 rounded-xl border border-red-300/30">
+                                <div class="text-red-200 text-sm font-semibold">Rouge</div>
+                                <div class="text-2xl font-bold text-white">${gameState.score.red}</div>
+                            </div>
+                            <div class="bg-yellow-500/30 backdrop-blur px-6 py-2 rounded-xl border border-yellow-300/30">
+                                <div class="text-yellow-200 text-sm font-semibold">Jaune</div>
+                                <div class="text-2xl font-bold text-white">${gameState.score.yellow}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <div class="text-xl font-bold text-white bg-white/10 backdrop-blur py-2 px-4 rounded-xl inline-block">
+                                ${result ? `🎉 ${result.winner === 'red' ? 'Rouge' : 'Jaune'} gagne !` : `Au tour de : ${gameState.isRedNext ? '🔴 Rouge' : '🟡 Jaune'}`}
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-800/50 backdrop-blur p-4 rounded-2xl border-4 border-blue-900 mb-4">
+                            <div class="grid grid-cols-7 gap-2">
+                                ${gameState.board.map((cell, i) => {
+                                    const isWinning = winningCells.includes(i);
+                                    return `
+                                        <button
+                                            onclick="ConnectFour.dropPiece(${i % 7})"
+                                            class="w-14 h-14 rounded-full transition-all ${
+                                                cell === 'red' ? 'bg-red-500' : 
+                                                cell === 'yellow' ? 'bg-yellow-400' : 
+                                                'bg-white/20'
+                                            } ${isWinning ? 'ring-4 ring-green-400 scale-110' : ''} ${!cell && !result ? 'hover:bg-white/30 cursor-pointer' : ''}"
+                                        ></button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button onclick="ConnectFour.reset()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition-all hover:scale-105">
+                                Nouvelle partie
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        };
 
-// Jeu de Puissance 4
-function ConnectFour() {
-  const [board, setBoard] = useState(Array(42).fill(null));
-  const [isRedNext, setIsRedNext] = useState(true);
-  const [score, setScore] = useState({ red: 0, yellow: 0 });
+        // Snake
+        const Snake = {
+            init() {
+                gameState.snake = [[5, 5]];
+                gameState.food = [10, 10];
+                gameState.direction = 'RIGHT';
+                gameState.gameOver = false;
+                gameState.score = 0;
+                gameState.highScore = 0;
+                gameState.started = false;
+                
+                document.addEventListener('keydown', this.handleKeyPress.bind(this));
+                
+                if (gameState.interval) clearInterval(gameState.interval);
+                gameState.interval = setInterval(() => this.moveSnake(), 150);
+            },
+            
+            generateFood(snakeBody) {
+                let newFood;
+                do {
+                    newFood = [
+                        Math.floor(Math.random() * 20),
+                        Math.floor(Math.random() * 20)
+                    ];
+                } while (snakeBody.some(seg => seg[0] === newFood[0] && seg[1] === newFood[1]));
+                return newFood;
+            },
+            
+            moveSnake() {
+                if (gameState.gameOver || !gameState.started) return;
+                
+                const head = [...gameState.snake[0]];
+                
+                switch (gameState.direction) {
+                    case 'UP': head[0]--; break;
+                    case 'DOWN': head[0]++; break;
+                    case 'LEFT': head[1]--; break;
+                    case 'RIGHT': head[1]++; break;
+                }
+                
+                if (head[0] < 0 || head[0] >= 20 || head[1] < 0 || head[1] >= 20 ||
+                    gameState.snake.some(seg => seg[0] === head[0] && seg[1] === head[1])) {
+                    gameState.gameOver = true;
+                    if (gameState.score > gameState.highScore) {
+                        gameState.highScore = gameState.score;
+                    }
+                    render();
+                    return;
+                }
+                
+                const newSnake = [head, ...gameState.snake];
+                
+                if (head[0] === gameState.food[0] && head[1] === gameState.food[1]) {
+                    gameState.score += 10;
+                    gameState.food = this.generateFood(newSnake);
+                } else {
+                    newSnake.pop();
+                }
+                
+                gameState.snake = newSnake;
+                render();
+            },
+            
+            handleKeyPress(e) {
+                if (!gameState.started) {
+                    gameState.started = true;
+                }
+                
+                const key = e.key;
+                if (key === 'ArrowUp' && gameState.direction !== 'DOWN') gameState.direction = 'UP';
+                if (key === 'ArrowDown' && gameState.direction !== 'UP') gameState.direction = 'DOWN';
+                if (key === 'ArrowLeft' && gameState.direction !== 'RIGHT') gameState.direction = 'LEFT';
+                if (key === 'ArrowRight' && gameState.direction !== 'LEFT') gameState.direction = 'RIGHT';
+            },
+            
+            reset() {
+                this.init();
+                render();
+            },
+            
+            render() {
+                const gridSize = 20;
+                
+                return `
+                    <div class="w-full max-w-2xl mx-auto">
+                        <div class="flex justify-center gap-6 mb-4">
+                            <div class="bg-green-500/30 backdrop-blur px-6 py-2 rounded-xl border border-green-300/30">
+                                <div class="text-green-200 text-xs font-semibold">Score</div>
+                                <div class="text-2xl font-bold text-white">${gameState.score}</div>
+                            </div>
+                            <div class="bg-purple-500/30 backdrop-blur px-6 py-2 rounded-xl border border-purple-300/30">
+                                <div class="text-purple-200 text-xs font-semibold">Record</div>
+                                <div class="text-2xl font-bold text-white">${gameState.highScore}</div>
+                            </div>
+                        </div>
+                        
+                        ${!gameState.started ? '<div class="text-center mb-4 text-white text-sm">Utilisez les flèches du clavier pour commencer</div>' : ''}
+                        
+                        ${gameState.gameOver ? `<div class="text-center mb-4"><div class="text-xl font-bold text-red-400 bg-red-500/20 backdrop-blur py-2 px-4 rounded-xl inline-block">Game Over ! Score: ${gameState.score}</div></div>` : ''}
+                        
+                        <div class="bg-gray-900/50 backdrop-blur p-2 rounded-xl border-2 border-white/20 mb-4">
+                            <div class="grid gap-0.5" style="grid-template-columns: repeat(${gridSize}, 1fr)">
+                                ${Array.from({ length: gridSize * gridSize }).map((_, i) => {
+                                    const row = Math.floor(i / gridSize);
+                                    const col = i % gridSize;
+                                    const isSnake = gameState.snake.some(seg => seg[0] === row && seg[1] === col);
+                                    const isHead = gameState.snake[0][0] === row && gameState.snake[0][1] === col;
+                                    const isFood = gameState.food[0] === row && gameState.food[1] === col;
+                                    
+                                    return `<div class="aspect-square rounded-sm ${
+                                        isHead ? 'bg-green-400' :
+                                        isSnake ? 'bg-green-600' :
+                                        isFood ? 'bg-red-500' :
+                                        'bg-gray-800/30'
+                                    }"></div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button onclick="Snake.reset()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition-all hover:scale-105">
+                                Nouvelle partie
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        };
 
-  const checkWinner = (squares) => {
-    const rows = 6, cols = 7;
-    
-    // Horizontal
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols - 3; c++) {
-        const idx = r * cols + c;
-        if (squares[idx] && squares[idx] === squares[idx + 1] && 
-            squares[idx] === squares[idx + 2] && squares[idx] === squares[idx + 3]) {
-          return { winner: squares[idx], cells: [idx, idx + 1, idx + 2, idx + 3] };
+        // Menu principal
+        function showMenu() {
+            currentGame = null;
+            if (gameState.interval) {
+                clearInterval(gameState.interval);
+            }
+            render();
         }
-      }
-    }
-    
-    // Vertical
-    for (let c = 0; c < cols; c++) {
-      for (let r = 0; r < rows - 3; r++) {
-        const idx = r * cols + c;
-        if (squares[idx] && squares[idx] === squares[idx + cols] && 
-            squares[idx] === squares[idx + cols * 2] && squares[idx] === squares[idx + cols * 3]) {
-          return { winner: squares[idx], cells: [idx, idx + cols, idx + cols * 2, idx + cols * 3] };
+
+        function selectGame(game) {
+            currentGame = game;
+            
+            if (game === 'tictactoe') TicTacToe.init();
+            else if (game === 'connect4') ConnectFour.init();
+            else if (game === 'snake') Snake.init();
+            
+            render();
         }
-      }
-    }
-    
-    // Diagonale droite
-    for (let r = 0; r < rows - 3; r++) {
-      for (let c = 0; c < cols - 3; c++) {
-        const idx = r * cols + c;
-        if (squares[idx] && squares[idx] === squares[idx + cols + 1] && 
-            squares[idx] === squares[idx + (cols + 1) * 2] && squares[idx] === squares[idx + (cols + 1) * 3]) {
-          return { winner: squares[idx], cells: [idx, idx + cols + 1, idx + (cols + 1) * 2, idx + (cols + 1) * 3] };
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (!currentGame) {
+                app.innerHTML = `
+                    <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-12 shadow-2xl border border-white/20 max-w-4xl w-full">
+                        <h1 class="text-6xl font-bold text-white text-center mb-4 drop-shadow-lg">
+                            🎮 Hub de Jeux
+                        </h1>
+                        <p class="text-white/70 text-center mb-12 text-lg">
+                            Choisissez votre jeu préféré
+                        </p>
+                        
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <button onclick="selectGame('tictactoe')" class="bg-gradient-to-br from-purple-500 to-pink-500 p-8 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 border-2 border-white/30">
+                                <div class="text-6xl mb-4">❌⭕</div>
+                                <div class="text-2xl font-bold text-white">Morpion</div>
+                            </button>
+                            
+                            <button onclick="selectGame('connect4')" class="bg-gradient-to-br from-blue-500 to-cyan-500 p-8 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 border-2 border-white/30">
+                                <div class="text-6xl mb-4">🔴🟡</div>
+                                <div class="text-2xl font-bold text-white">Puissance 4</div>
+                            </button>
+                            
+                            <button onclick="selectGame('snake')" class="bg-gradient-to-br from-green-500 to-emerald-500 p-8 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 border-2 border-white/30">
+                                <div class="text-6xl mb-4">🐍</div>
+                                <div class="text-2xl font-bold text-white">Snake</div>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const gameName = currentGame === 'tictactoe' ? 'Morpion' : 
+                                 currentGame === 'connect4' ? 'Puissance 4' : 'Snake';
+                
+                let gameContent = '';
+                if (currentGame === 'tictactoe') gameContent = TicTacToe.render();
+                else if (currentGame === 'connect4') gameContent = ConnectFour.render();
+                else if (currentGame === 'snake') gameContent = Snake.render();
+                
+                app.innerHTML = `
+                    <div class="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 w-full max-w-4xl">
+                        <div class="flex items-center justify-between mb-6">
+                            <button onclick="showMenu()" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-xl transition-all">
+                                ← Retour
+                            </button>
+                            <h1 class="text-3xl font-bold text-white">
+                                ${gameName}
+                            </h1>
+                            <div class="w-24"></div>
+                        </div>
+                        
+                        ${gameContent}
+                    </div>
+                `;
+            }
         }
-      }
-    }
-    
-    // Diagonale gauche
-    for (let r = 0; r < rows - 3; r++) {
-      for (let c = 3; c < cols; c++) {
-        const idx = r * cols + c;
-        if (squares[idx] && squares[idx] === squares[idx + cols - 1] && 
-            squares[idx] === squares[idx + (cols - 1) * 2] && squares[idx] === squares[idx + (cols - 1) * 3]) {
-          return { winner: squares[idx], cells: [idx, idx + cols - 1, idx + (cols - 1) * 2, idx + (cols - 1) * 3] };
-        }
-      }
-    }
-    
-    return null;
-  };
 
-  const dropPiece = (col) => {
-    const result = checkWinner(board);
-    if (result) return;
-    
-    for (let row = 5; row >= 0; row--) {
-      const idx = row * 7 + col;
-      if (!board[idx]) {
-        const newBoard = [...board];
-        newBoard[idx] = isRedNext ? 'red' : 'yellow';
-        setBoard(newBoard);
-        setIsRedNext(!isRedNext);
-        
-        const winner = checkWinner(newBoard);
-        if (winner) {
-          setTimeout(() => {
-            setScore(prev => ({ ...prev, [winner.winner]: prev[winner.winner] + 1 }));
-          }, 500);
-        }
-        return;
-      }
-    }
-  };
-
-  const resetGame = () => {
-    setBoard(Array(42).fill(null));
-    setIsRedNext(true);
-  };
-
-  const result = checkWinner(board);
-  const winningCells = result?.cells || [];
-
-  return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="flex justify-center gap-6 mb-6">
-        <div className="bg-red-500/30 backdrop-blur px-6 py-2 rounded-xl border border-red-300/30">
-          <div className="text-red-200 text-sm font-semibold">Rouge</div>
-          <div className="text-2xl font-bold text-white">{score.red}</div>
-        </div>
-        <div className="bg-yellow-500/30 backdrop-blur px-6 py-2 rounded-xl border border-yellow-300/30">
-          <div className="text-yellow-200 text-sm font-semibold">Jaune</div>
-          <div className="text-2xl font-bold text-white">{score.yellow}</div>
-        </div>
-      </div>
-
-      <div className="text-center mb-4">
-        <div className="text-xl font-bold text-white bg-white/10 backdrop-blur py-2 px-4 rounded-xl inline-block">
-          {result ? `🎉 ${result.winner === 'red' ? 'Rouge' : 'Jaune'} gagne !` : `Au tour de : ${isRedNext ? '🔴 Rouge' : '🟡 Jaune'}`}
-        </div>
-      </div>
-
-      <div className="bg-blue-800/50 backdrop-blur p-4 rounded-2xl border-4 border-blue-900 mb-4">
-        <div className="grid grid-cols-7 gap-2">
-          {board.map((cell, i) => {
-            const isWinning = winningCells.includes(i);
-            return (
-              <button
-                key={i}
-                onClick={() => dropPiece(i % 7)}
-                className={`w-14 h-14 rounded-full transition-all ${
-                  cell === 'red' ? 'bg-red-500' : 
-                  cell === 'yellow' ? 'bg-yellow-400' : 
-                  'bg-white/20'
-                } ${isWinning ? 'ring-4 ring-green-400 scale-110' : ''} ${!cell && !result ? 'hover:bg-white/30 cursor-pointer' : ''}`}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="text-center">
-        <button onClick={resetGame} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition-all hover:scale-105">
-          Nouvelle partie
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Jeu du Serpent
-function Snake() {
-  const [snake, setSnake] = useState([[5, 5]]);
-  const [food, setFood] = useState([10, 10]);
-  const [direction, setDirection] = useState('RIGHT');
-  const [gameOver, setGameOver] = useState(false);
-  const [score, setScore] = useState(0);
-  const [highScore, setHighScore] = useState(0);
-  const [started, setStarted] = useState(false);
-
-  const gridSize = 20;
-
-  const generateFood = (snakeBody) => {
-    let newFood;
-    do {
-      newFood = [
-        Math.floor(Math.random() * gridSize),
-        Math.floor(Math.random() * gridSize)
-      ];
-    } while (snakeBody.some(seg => seg[0] === newFood[0] && seg[1] === newFood[1]));
-    return newFood;
-  };
-
-  const moveSnake = () => {
-    if (gameOver || !started) return;
-
-    const head = [...snake[0]];
-    
-    switch (direction) {
-      case 'UP': head[0]--; break;
-      case 'DOWN': head[0]++; break;
-      case 'LEFT': head[1]--; break;
-      case 'RIGHT': head[1]++; break;
-    }
-
-    if (head[0] < 0 || head[0] >= gridSize || head[1] < 0 || head[1] >= gridSize ||
-        snake.some(seg => seg[0] === head[0] && seg[1] === head[1])) {
-      setGameOver(true);
-      if (score > highScore) setHighScore(score);
-      return;
-    }
-
-    const newSnake = [head, ...snake];
-    
-    if (head[0] === food[0] && head[1] === food[1]) {
-      setScore(score + 10);
-      setFood(generateFood(newSnake));
-    } else {
-      newSnake.pop();
-    }
-
-    setSnake(newSnake);
-  };
-
-  useState(() => {
-    const interval = setInterval(moveSnake, 150);
-    return () => clearInterval(interval);
-  });
-
-  const handleKeyPress = (e) => {
-    if (!started) {
-      setStarted(true);
-    }
-    
-    const key = e.key;
-    if (key === 'ArrowUp' && direction !== 'DOWN') setDirection('UP');
-    if (key === 'ArrowDown' && direction !== 'UP') setDirection('DOWN');
-    if (key === 'ArrowLeft' && direction !== 'RIGHT') setDirection('LEFT');
-    if (key === 'ArrowRight' && direction !== 'LEFT') setDirection('RIGHT');
-  };
-
-  const resetGame = () => {
-    setSnake([[5, 5]]);
-    setFood([10, 10]);
-    setDirection('RIGHT');
-    setGameOver(false);
-    setScore(0);
-    setStarted(false);
-  };
-
-  return (
-    <div className="w-full max-w-2xl mx-auto" onKeyDown={handleKeyPress} tabIndex={0}>
-      <div className="flex justify-center gap-6 mb-4">
-        <div className="bg-green-500/30 backdrop-blur px-6 py-2 rounded-xl border border-green-300/30">
-          <div className="text-green-200 text-xs font-semibold">Score</div>
-          <div className="text-2xl font-bold text-white">{score}</div>
-        </div>
-        <div className="bg-purple-500/30 backdrop-blur px-6 py-2 rounded-xl border border-purple-300/30">
-          <div className="text-purple-200 text-xs font-semibold">Record</div>
-          <div className="text-2xl font-bold text-white">{highScore}</div>
-        </div>
-      </div>
-
-      {!started && (
-        <div className="text-center mb-4 text-white text-sm">
-          Utilisez les flèches du clavier pour commencer
-        </div>
-      )}
-
-      {gameOver && (
-        <div className="text-center mb-4">
-          <div className="text-xl font-bold text-red-400 bg-red-500/20 backdrop-blur py-2 px-4 rounded-xl inline-block">
-            Game Over ! Score: {score}
-          </div>
-        </div>
-      )}
-
-      <div className="bg-gray-900/50 backdrop-blur p-2 rounded-xl border-2 border-white/20 mb-4">
-        <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${gridSize}, 1fr)` }}>
-          {Array.from({ length: gridSize * gridSize }).map((_, i) => {
-            const row = Math.floor(i / gridSize);
-            const col = i % gridSize;
-            const isSnake = snake.some(seg => seg[0] === row && seg[1] === col);
-            const isHead = snake[0][0] === row && snake[0][1] === col;
-            const isFood = food[0] === row && food[1] === col;
-
-            return (
-              <div
-                key={i}
-                className={`aspect-square rounded-sm ${
-                  isHead ? 'bg-green-400' :
-                  isSnake ? 'bg-green-600' :
-                  isFood ? 'bg-red-500' :
-                  'bg-gray-800/30'
-                }`}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="text-center">
-        <button onClick={resetGame} className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-xl transition-all hover:scale-105">
-          Nouvelle partie
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Menu principal
-export default function GameHub() {
-  const [currentGame, setCurrentGame] = useState(null);
-
-  const games = [
-    { id: 'tictactoe', name: 'Morpion', icon: '❌⭕', color: 'from-purple-500 to-pink-500' },
-    { id: 'connect4', name: 'Puissance 4', icon: '🔴🟡', color: 'from-blue-500 to-cyan-500' },
-    { id: 'snake', name: 'Snake', icon: '🐍', color: 'from-green-500 to-emerald-500' }
-  ];
-
-  if (currentGame) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 w-full max-w-4xl">
-          <div className="flex items-center justify-between mb-6">
-            <button
-              onClick={() => setCurrentGame(null)}
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold py-2 px-4 rounded-xl transition-all"
-            >
-              ← Retour
-            </button>
-            <h1 className="text-3xl font-bold text-white">
-              {games.find(g => g.id === currentGame)?.name}
-            </h1>
-            <div className="w-24"></div>
-          </div>
-          
-          {currentGame === 'tictactoe' && <TicTacToe />}
-          {currentGame === 'connect4' && <ConnectFour />}
-          {currentGame === 'snake' && <Snake />}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
-      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 shadow-2xl border border-white/20 max-w-4xl w-full">
-        <h1 className="text-6xl font-bold text-white text-center mb-4 drop-shadow-lg">
-          🎮 Hub de Jeux
-        </h1>
-        <p className="text-white/70 text-center mb-12 text-lg">
-          Choisissez votre jeu préféré
-        </p>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {games.map(game => (
-            <button
-              key={game.id}
-              onClick={() => setCurrentGame(game.id)}
-              className={`bg-gradient-to-br ${game.color} p-8 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 border-2 border-white/30`}
-            >
-              <div className="text-6xl mb-4">{game.icon}</div>
-              <div className="text-2xl font-bold text-white">{game.name}</div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+        // Démarrage
+        render();
+    </script>
+</body>
+</html>
